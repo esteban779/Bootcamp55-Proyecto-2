@@ -1,0 +1,184 @@
+openapi: 3.0.3
+info:
+  title: Banco XYZ Microservicio Transacciones - OpenAPI 3.0
+  description: |-
+    Documentación del API para gestionar transacciones bancarias.
+  contact:
+    email: lramosol@emeal.nttdata.com
+  version: 1.0.11
+servers:
+  - url: http://localhost:1050
+tags:
+  - name: transaccion
+    description: Registro e historial de transacciones bancarias.
+    externalDocs:
+      description: Find out more
+      url: http://swagger.io
+paths:
+  /transacciones/deposito:
+    post:
+      tags:
+        - transaccion
+      summary: Depósitos
+      description: Registrar un depósito.
+      operationId: deposito
+      requestBody:
+        description: Datos para registrar un depósito.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Transaccion'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaccion'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseModel'
+      security:
+        - bancoxyz_auth: [write]
+  /transacciones/retiro:
+    post:
+      tags:
+        - transaccion
+      summary: Retiros
+      description: Registrar un retiro.
+      operationId: retiro
+      requestBody:
+        description: Datos para registrar un retiro.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Transaccion'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaccion'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseModel'
+      security:
+        - bancoxyz_auth: [write]
+  /transacciones/transferencia:
+    post:
+      tags:
+        - transaccion
+      summary: Transferencias
+      description: Registrar una transferencia.
+      operationId: transferencia
+      requestBody:
+        description: Datos para registrar una transferencia.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Transaccion'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaccion'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseModel'
+      security:
+        - bancoxyz_auth: [write]
+  /transacciones/historial:
+    get:
+      tags:
+        - transaccion
+      summary: Historial de transacciones
+      description: Consultar historial de transacciones.
+      operationId: historial
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Transaccion'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseModel'
+      security:
+        - bancoxyz_auth: [read]
+components:
+  schemas:
+    Transaccion:
+      type: object
+      properties:
+        id:
+          type: string
+          description: ID de la transacción.
+        tipo:
+          type: string
+          description: Depósito, retiro o transferencia.
+        monto:
+          type: number
+          format: double
+        fecha:
+          type: string
+          pattern: "^\\d{2}/\\d{2}/\\d{4}$"
+          description: Fecha de la transacción.
+        cuentas:
+          type: string
+          description: Cuenta de origen y, en el caso de transferencias, cuenta de destino.
+      xml:
+        name: transaccion
+    ResponseModel:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+          example: 404
+        type:
+          type: string
+          example: 'success'
+        message:
+          type: string
+          description: A human-readable message
+      xml:
+        name: '##default'
+  requestBodies:
+    UserArray:
+      description: List of user object
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/Transaccion'
+  securitySchemes:
+    bancoxyz_auth:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: https://bancoxyz.swagger.io/oauth/authorize
+          scopes:
+            write: Grants permission to register transactions.
+            read: Grants read access transactions history.

@@ -1,0 +1,6 @@
+src/main/java/com/xyzbank/CustomerMs/api/ApiUtil.java
+src/main/java/com/xyzbank/CustomerMs/api/ClientesApi.java
+src/main/java/com/xyzbank/CustomerMs/api/ClientesApiController.java
+src/main/java/com/xyzbank/CustomerMs/api/ClientesApiDelegate.java
+src/main/java/com/xyzbank/CustomerMs/model/Cliente.java
+src/main/java/com/xyzbank/CustomerMs/model/ResponseModel.java

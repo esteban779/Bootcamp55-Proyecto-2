@@ -1,0 +1,284 @@
+openapi: 3.0.3
+info:
+  title: Banco XYZ Microservicio Cuenta - OpenAPI 3.0
+  description: |-
+    Documentación del API para administrar cuentas del banco XYZ.
+  contact:
+    email: lramosol@emeal.nttdata.com
+  version: 1.0.11
+servers:
+  - url: http://localhost:1020
+tags:
+  - name: cuenta
+    description: Operaciones en cuentas de clientes
+    externalDocs:
+      description: Find out more
+      url: http://swagger.io
+paths:
+  /cuentas:
+    post:
+      tags:
+        - cuenta
+      summary: Crear una cuenta
+      description: Crear una cuenta para un cliente.
+      operationId: crearCuenta
+      requestBody:
+        description: Datos para crear una nueva cuenta bancaria.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Cuenta'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cuenta'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseModel'
+      security:
+        - bancoxyz_auth: [write]
+    get:
+      tags:
+        - cuenta
+      summary: Listar cuentas
+      description: Listar todas las cuentas bancarias.
+      operationId: listarCuentas
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Cuenta'
+        '404':
+          description: Accounts not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseModel'
+      security:
+        - bancoxyz_auth: [read]
+  /cuentas/{id}:
+    get:
+      tags:
+        - cuenta
+      summary: Detalle de un cuenta
+      description: Obtener detalles de una cuenta por su ID.
+      operationId: getCuentaPorId
+      parameters:
+        - name: id
+          in: path
+          description: ID de la cuenta
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cuenta'
+        '400':
+          description: Invalid ID supplied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseModel'
+        '404':
+          description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseModel'
+      security:
+        - bancoxyz_auth: [read]
+    delete:
+      tags:
+        - cuenta
+      summary: Eliminar cuenta
+      description: Eliminar una cuenta bancaria.
+      operationId: eliminarCuenta
+      parameters:
+        - name: id
+          in: path
+          description: ID de la cuenta a eliminar
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Account deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseModel'
+        '400':
+          description: Invalid ID supplied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseModel'
+        '404':
+          description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseModel'
+      security:
+        - bancoxyz_auth: [delete]
+  /cuentas/{cuentaId}/depositar:
+    put:
+      tags:
+        - cuenta
+      summary: Depositar en una cuenta
+      description: Realizar un depósito en una cuenta bancaria.
+      operationId: depositar
+      parameters:
+        - name: cuentaId
+          in: path
+          description: ID de la cuenta en la que se realiza el depósito
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: monto
+          in: query
+          description: Monto a depositar
+          required: true
+          schema:
+            type: number
+            format: double
+      responses:
+        '200':
+          description: Successful deposit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseModel'
+        '400':
+          description: Invalid ID supplied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseModel'
+      security:
+        - bancoxyz_auth: [update]
+  /cuentas/{cuentaId}/retirar:
+    put:
+      tags:
+        - cuenta
+      summary: Retirar de una cuenta
+      description: Realizar un retiro de una cuenta bancaria.
+      operationId: retirar
+      parameters:
+        - name: cuentaId
+          in: path
+          description: ID de la cuenta de la que se realiza el retiro
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: monto
+          in: query
+          description: Monto a retirar
+          required: true
+          schema:
+            type: number
+            format: double
+      responses:
+        '200':
+          description: Successful withdrawal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseModel'
+        '400':
+          description: Invalid ID supplied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseModel'
+      security:
+        - bancoxyz_auth: [update]
+components:
+  schemas:
+    Cuenta:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Identificador único
+          example: 77
+        numeroCuenta:
+          type: string
+          description: Generado automáticamente, debe ser único
+          example: '1234567891234567'
+        saldo:
+          type: number
+          format: double
+          description: Inicia en 0.0
+          example: 500.17
+        tipoCuenta:
+          type: string
+          description: Tipo de cuenta
+          enum:
+            - AHORROS
+            - CORRIENTE
+        clienteId:
+          type: integer
+          format: int64
+          description: El ID del cliente propietario de la cuenta
+      required:
+        - clienteId
+      xml:
+        name: cuenta
+    ResponseModel:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+          example: 404
+        type:
+          type: string
+          example: 'success'
+        message:
+          type: string
+          description: A human-readable message
+        data:
+          $ref: '#/components/schemas/Cuenta'
+      xml:
+        name: '##default'
+  requestBodies:
+    UserArray:
+      description: List of user object
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/Cuenta'
+  securitySchemes:
+    bancoxyz_auth:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: https://bancoxyz.swagger.io/oauth/authorize
+          scopes:
+            write: Grants permission to create new bank accounts.
+            read: Grants read access to bank accounts information.
+            update: Grants permission to update bak accounts information.
+            delete: Grants permission to delete bank accounts.
