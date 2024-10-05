@@ -105,7 +105,7 @@ public class CuentasServiceImpl implements CuentasService {
 
     @Override
     @Transactional
-    public void depositar(Long cuentaId, Double monto) {
+    public void depositar(Long cuentaId, Double monto, Boolean isTransfer) {
         CuentaEntity cuenta = cuentasRepository.findById(cuentaId)
                 .orElseThrow(() -> new EntityNotFoundException("No se encontró la cuenta."));
 
@@ -117,12 +117,15 @@ public class CuentasServiceImpl implements CuentasService {
         cuenta.setSaldo(newSaldo.setScale(2, RoundingMode.HALF_EVEN).doubleValue());
 
         cuentasRepository.save(cuenta);
-        transactionCall("deposito", monto, cuenta.getNumeroCuenta());
+
+        if (!isTransfer) {
+            transactionCall("deposito", monto, cuenta.getNumeroCuenta());
+        }
     }
 
     @Override
     @Transactional
-    public void retirar(Long cuentaId, Double monto) {
+    public void retirar(Long cuentaId, Double monto, Boolean isTransfer) {
         CuentasValidator validator;
 
         CuentaEntity cuenta = cuentasRepository.findById(cuentaId)
@@ -143,7 +146,25 @@ public class CuentasServiceImpl implements CuentasService {
         cuenta.setSaldo(newSaldo.setScale(2, RoundingMode.HALF_EVEN).doubleValue());
 
         cuentasRepository.save(cuenta);
-        transactionCall("retiro", monto, cuenta.getNumeroCuenta());
+
+        if (!isTransfer) {
+            transactionCall("retiro", monto, cuenta.getNumeroCuenta());
+        }
+    }
+
+    @Override
+    @Transactional
+    public void transferir(Long origenId, Long destinoId, Double monto) {
+        if (!origenId.equals(destinoId)) {
+            retirar(origenId, monto, true);
+            depositar(destinoId, monto, true);
+        } else {
+            throw new IllegalArgumentException("Las cuentas de origen y destino no pueden ser las mismas.");
+        }
+
+        String cuentaDestino = cuentasRepository.findById(destinoId).map(CuentaEntity::getNumeroCuenta).get();
+
+        transactionCall("transferencia", monto, cuentaDestino);
     }
 
     @Override

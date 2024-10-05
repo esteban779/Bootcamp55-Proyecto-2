@@ -48,8 +48,8 @@ public class CuentasApiDelegateImpl implements CuentasApiDelegate {
     }
 
     @Override
-    public ResponseEntity<ResponseModel> depositar(Long cuentaId, Double monto) {
-        cuentasService.depositar(cuentaId, monto);
+    public ResponseEntity<ResponseModel> depositar(Long cuentaId, Double monto, Boolean isTransfer) {
+        cuentasService.depositar(cuentaId, monto, isTransfer);
 
         ResponseModel response = new ResponseModel().code(200).message("Depositado correctamente: $" + monto);
 
@@ -57,10 +57,21 @@ public class CuentasApiDelegateImpl implements CuentasApiDelegate {
     }
 
     @Override
-    public ResponseEntity<ResponseModel> retirar(Long cuentaId, Double monto) {
-        cuentasService.retirar(cuentaId, monto);
+    public ResponseEntity<ResponseModel> retirar(Long cuentaId, Double monto, Boolean isTransfer) {
+        cuentasService.retirar(cuentaId, monto, isTransfer);
 
         ResponseModel response = new ResponseModel().code(200).message("Se realizó el retiro de $" + monto);
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @Override
+    public ResponseEntity<ResponseModel> transferir(Long origenId, Double monto, Long destinoId) {
+        cuentasService.transferir(origenId, destinoId, monto);
+
+        ResponseModel response = new ResponseModel()
+                .code(200)
+                .message("Se realizó la transferencia de $" + monto + " a la cuenta con ID " + destinoId);
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
