@@ -119,7 +119,12 @@ public class CuentasServiceImpl implements CuentasService {
         cuentasRepository.save(cuenta);
 
         if (!isTransfer) {
-            transactionCall("deposito", monto, cuenta.getNumeroCuenta());
+            try {
+                transactionCall("deposito", monto, cuenta.getNumeroCuenta());
+            } catch (Exception e) {
+                retirar(cuentaId, monto, true);
+                throw new RuntimeException(e);
+            }
         }
     }
 
@@ -148,7 +153,12 @@ public class CuentasServiceImpl implements CuentasService {
         cuentasRepository.save(cuenta);
 
         if (!isTransfer) {
-            transactionCall("retiro", monto, cuenta.getNumeroCuenta());
+            try {
+                transactionCall("retiro", monto, cuenta.getNumeroCuenta());
+            } catch (Exception e) {
+                depositar(cuentaId, monto, true);
+                throw new RuntimeException(e);
+            }
         }
     }
 
@@ -164,7 +174,13 @@ public class CuentasServiceImpl implements CuentasService {
 
         String cuentaDestino = cuentasRepository.findById(destinoId).map(CuentaEntity::getNumeroCuenta).get();
 
-        transactionCall("transferencia", monto, cuentaDestino);
+        try {
+            transactionCall("transferencia", monto, cuentaDestino);
+        } catch (Exception e) {
+            depositar(origenId, monto, true);
+            retirar(destinoId, monto, true);
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
