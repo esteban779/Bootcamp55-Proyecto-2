@@ -12,13 +12,13 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
 @Service
-public class SagaOrchestration {
+public class TransaccionesSaga {
 
     private final CuentasService cuentasService;
     private final RestTemplate restTemplate;
     private final CuentasRepository cuentasRepository;
 
-    public SagaOrchestration(CuentasService cuentasService, RestTemplate restTemplate, CuentasRepository cuentasRepository) {
+    public TransaccionesSaga(CuentasService cuentasService, RestTemplate restTemplate, CuentasRepository cuentasRepository) {
         this.cuentasService = cuentasService;
         this.restTemplate = restTemplate;
         this.cuentasRepository = cuentasRepository;
@@ -26,6 +26,7 @@ public class SagaOrchestration {
 
     @Transactional
     public void depositoSaga(Long cuentaId, Double monto) {
+
         cuentasService.depositar(cuentaId, monto);
 
         try {
@@ -38,6 +39,7 @@ public class SagaOrchestration {
 
     @Transactional
     public void retiroSaga(Long cuentaId, Double monto) {
+
         cuentasService.retirar(cuentaId, monto);
 
         try {
@@ -50,19 +52,15 @@ public class SagaOrchestration {
 
     @Transactional
     public void transferenciaSaga(Long origenId, Long destinoId, Double monto) {
+
         cuentasService.retirar(origenId, monto);
+        cuentasService.depositar(destinoId, monto);
 
         try {
-            cuentasService.depositar(destinoId, monto);
-            try {
-                transactionCall("transferencia", monto, destinoId);
-            } catch (Exception e) {
-                compensacionRetiro(origenId, monto);
-                compensacionDeposito(destinoId, monto);
-                throw new RuntimeException(e);
-            }
+            transactionCall("transferencia", monto, destinoId);
         } catch (Exception e) {
             compensacionRetiro(origenId, monto);
+            compensacionDeposito(destinoId, monto);
             throw new RuntimeException(e);
         }
     }
