@@ -4,6 +4,7 @@ import com.xyzbank.AccountMs.api.CuentasApiDelegate;
 import com.xyzbank.AccountMs.model.Cuenta;
 import com.xyzbank.AccountMs.model.ResponseModel;
 import com.xyzbank.AccountMs.service.CuentasService;
+import com.xyzbank.AccountMs.service.SagaOrchestration;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -15,9 +16,11 @@ import java.util.Optional;
 public class CuentasApiDelegateImpl implements CuentasApiDelegate {
 
     private final CuentasService cuentasService;
+    private final SagaOrchestration sagaOrchestration;
 
-    public CuentasApiDelegateImpl(CuentasService cuentasService) {
+    public CuentasApiDelegateImpl(CuentasService cuentasService, SagaOrchestration sagaOrchestration) {
         this.cuentasService = cuentasService;
+        this.sagaOrchestration = sagaOrchestration;
     }
 
     @Override
@@ -48,8 +51,8 @@ public class CuentasApiDelegateImpl implements CuentasApiDelegate {
     }
 
     @Override
-    public ResponseEntity<ResponseModel> depositar(Long cuentaId, Double monto, Boolean isTransfer) {
-        cuentasService.depositar(cuentaId, monto, isTransfer);
+    public ResponseEntity<ResponseModel> depositar(Long cuentaId, Double monto) {
+        sagaOrchestration.depositoSaga(cuentaId, monto);
 
         ResponseModel response = new ResponseModel().code(200).message("Depositado correctamente: $" + monto);
 
@@ -57,8 +60,8 @@ public class CuentasApiDelegateImpl implements CuentasApiDelegate {
     }
 
     @Override
-    public ResponseEntity<ResponseModel> retirar(Long cuentaId, Double monto, Boolean isTransfer) {
-        cuentasService.retirar(cuentaId, monto, isTransfer);
+    public ResponseEntity<ResponseModel> retirar(Long cuentaId, Double monto) {
+        sagaOrchestration.retiroSaga(cuentaId, monto);
 
         ResponseModel response = new ResponseModel().code(200).message("Se realizó el retiro de $" + monto);
 
@@ -67,7 +70,7 @@ public class CuentasApiDelegateImpl implements CuentasApiDelegate {
 
     @Override
     public ResponseEntity<ResponseModel> transferir(Long origenId, Double monto, Long destinoId) {
-        cuentasService.transferir(origenId, destinoId, monto);
+        sagaOrchestration.transferenciaSaga(origenId, destinoId, monto);
 
         ResponseModel response = new ResponseModel()
                 .code(200)

@@ -10,9 +10,8 @@ public interface CuentasService {
     List<Cuenta> listarCuentas();
     Optional<Cuenta> getCuentaPorId(Long id);
     void eliminarCuenta(Long id);
-    void depositar(Long cuentaId, Double monto, Boolean isTransfer);
-    void retirar(Long cuentaId, Double monto, Boolean isTransfer);
-    void transferir(Long origenId, Long destinoId, Double monto);
+    void depositar(Long cuentaId, Double monto);
+    void retirar(Long cuentaId, Double monto);
 
     long accountsByClientId(Long clientId);
 }

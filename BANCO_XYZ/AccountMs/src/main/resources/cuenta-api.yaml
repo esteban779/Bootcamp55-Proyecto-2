@@ -160,12 +160,6 @@ paths:
           schema:
             type: number
             format: double
-        - name: isTransfer
-          in: query
-          description: Flag de transferencia
-          required: true
-          schema:
-            type: boolean
       responses:
         '200':
           description: Successful deposit
@@ -203,12 +197,6 @@ paths:
           schema:
             type: number
             format: double
-        - name: isTransfer
-          in: query
-          description: Flag de transferencia
-          required: true
-          schema:
-            type: boolean
       responses:
         '200':
           description: Successful withdrawal

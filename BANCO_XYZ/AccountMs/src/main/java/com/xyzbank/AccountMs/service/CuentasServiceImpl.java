@@ -104,8 +104,7 @@ public class CuentasServiceImpl implements CuentasService {
     }
 
     @Override
-    @Transactional
-    public void depositar(Long cuentaId, Double monto, Boolean isTransfer) {
+    public void depositar(Long cuentaId, Double monto) {
         CuentaEntity cuenta = cuentasRepository.findById(cuentaId)
                 .orElseThrow(() -> new EntityNotFoundException("No se encontró la cuenta."));
 
@@ -117,20 +116,11 @@ public class CuentasServiceImpl implements CuentasService {
         cuenta.setSaldo(newSaldo.setScale(2, RoundingMode.HALF_EVEN).doubleValue());
 
         cuentasRepository.save(cuenta);
-
-        if (!isTransfer) {
-            try {
-                transactionCall("deposito", monto, cuenta.getNumeroCuenta());
-            } catch (Exception e) {
-                retirar(cuentaId, monto, true);
-                throw new RuntimeException(e);
-            }
-        }
     }
 
     @Override
     @Transactional
-    public void retirar(Long cuentaId, Double monto, Boolean isTransfer) {
+    public void retirar(Long cuentaId, Double monto) {
         CuentasValidator validator;
 
         CuentaEntity cuenta = cuentasRepository.findById(cuentaId)
@@ -151,53 +141,10 @@ public class CuentasServiceImpl implements CuentasService {
         cuenta.setSaldo(newSaldo.setScale(2, RoundingMode.HALF_EVEN).doubleValue());
 
         cuentasRepository.save(cuenta);
-
-        if (!isTransfer) {
-            try {
-                transactionCall("retiro", monto, cuenta.getNumeroCuenta());
-            } catch (Exception e) {
-                depositar(cuentaId, monto, true);
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
-    @Override
-    @Transactional
-    public void transferir(Long origenId, Long destinoId, Double monto) {
-        if (!origenId.equals(destinoId)) {
-            retirar(origenId, monto, true);
-            depositar(destinoId, monto, true);
-        } else {
-            throw new IllegalArgumentException("Las cuentas de origen y destino no pueden ser las mismas.");
-        }
-
-        String cuentaDestino = cuentasRepository.findById(destinoId).map(CuentaEntity::getNumeroCuenta).get();
-
-        try {
-            transactionCall("transferencia", monto, cuentaDestino);
-        } catch (Exception e) {
-            depositar(origenId, monto, true);
-            retirar(destinoId, monto, true);
-            throw new RuntimeException(e);
-        }
     }
 
     @Override
     public long accountsByClientId(Long clientId) {
         return cuentasRepository.countByClienteId(clientId);
-    }
-
-    private void transactionCall(String tipo, Double monto, String numeroCuenta) {
-        TransaccionDTO transaccion = new TransaccionDTO(
-                tipo.toUpperCase(),
-                BigDecimal.valueOf(monto),
-                LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-                numeroCuenta
-        );
-
-        String urlDeposito = "http://localhost:1050/transacciones/" + tipo;
-
-        restTemplate.postForEntity(urlDeposito, transaccion, TransaccionDTO.class);
     }
 }
