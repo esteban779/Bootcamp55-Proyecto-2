@@ -39,6 +39,7 @@ public class SagaOrchestration {
     @Transactional
     public void retiroSaga(Long cuentaId, Double monto) {
         cuentasService.retirar(cuentaId, monto);
+
         try {
             transactionCall("retiro", monto, cuentaId);
         } catch (Exception e) {
